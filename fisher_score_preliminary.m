@@ -1,10 +1,7 @@
 %% Preliminary exploration of Fisher Scored data
 
-clearvars
-% cd('')
-
 nTag = 100;
-loadfile = ['Raw Matlab Workspaces\raw_county_fisher_workspace',num2str(nTag),'.mat'];
+loadfile = ['Raw Matlab Workspaces\raw_county_fisher_ws',num2str(nTag),'.mat'];
 load(loadfile);
 
 % Remove counties with too low a Fisher score and reindex everything

@@ -46,7 +46,8 @@ clear txt num tagfile
 % Load county unique users. counties.user_counts.bot_filtered.csv has rows
 % 1-1 with counties.csv. THESE ARE NOT IN THE SAME ORDER AS ABOVE.
 countyfile = 'Data\Binned Data\County\Hashtag Counts\counties.csv';
-[user_fips, ~, ~] = xlsread(countyfile);
+[user_fips,county_name, ~] = xlsread(countyfile);
+county_name = county_name(2:end,1);
 userfile = 'Data\Binned Data\County\Hashtag Counts\counties.user_counts.bot_filtered.csv';
 county_unique_users = csvread(userfile,1,0);
 county_unique_users = refSort(fips,user_fips,county_unique_users); %Put counties in order above
@@ -93,5 +94,5 @@ county_entropy = shannonEnt(county_dist);
 % Compute pairwise Aitchison distances
 a_dist = aDistPair(county_dist);
 
-savefile = ['Raw Matlab Workspaces\raw_county_fisher_workspace',num2str(nTag),'.mat'];
+savefile = ['Raw Matlab Workspaces\raw_county_fisher_ws',num2str(nTag),'.mat'];
 save(savefile);
