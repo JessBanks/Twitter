@@ -18,7 +18,7 @@ cd('C:\Users\Matthew Banks\Documents\Spring 2014\C4 Twitter Project')
 %     Column 2: county fisher score
 %     Column 3-end: hashtag counts, columns 1-1 with htscores_combined.csv
 
-nTag = 50; %Set #tags (50,100,200 for now)
+nTag = 200; %Set #tags (50,100,200 for now)
 countfile = ['Data\Fisher Score\hashtag_fisherscores_relative_n',num2str(nTag),'.csv'];
 countdata = csvread(countfile,1,0);
 [nCounty, ~] = size(countdata);

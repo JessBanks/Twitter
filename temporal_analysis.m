@@ -1,26 +1,43 @@
-%% Preliminary temporal analysis
+%% Analysis of temporal data
+% Calls mInfo mInfoC mapPlot
+
 clearvars
 cd('C:\Users\Matthew Banks\Documents\Spring 2014\C4 Twitter Project');
-load('Projects\Temporal\temporal_ws.mat');              
+nTag = 100;
+fisherfile = ['Raw Matlab Workspaces\raw_county_fisher_workspace',num2str(nTag),'.mat'];
+load(fisherfile);
+timefile = 'Projects\Temporal\temporal_ws.mat';
+load(timefile);
 
-% Calls mInfo mapPlot
+% Remove counties with too low a Fisher score and reindex everything
+% one-one with it.
+fisher_thresh = .6;
+keep_counties = find(county_fisher <= fisher_thresh);
+a_dist = a_dist(keep_counties,keep_counties);
+county_boundaries = county_boundaries(keep_counties,:);
+county_centers = county_centers(keep_counties,:);
+county_counts = county_counts(keep_counties,:);
+county_dist = county_dist(keep_counties,:);
+county_entropy = county_entropy(keep_counties,:);
+county_fisher = county_fisher(keep_counties,:);
+county_population = county_population(keep_counties,:);
+county_shapes = county_shapes(keep_counties,:);
+county_unique_tags = county_unique_tags(keep_counties,:);
+county_unique_users = county_unique_users(keep_counties,:);
+fips = fips(keep_counties,:);
+g_dist = g_dist(keep_counties,keep_counties);
+nCounty = length(keep_counties);
+timeseries = timeseries(keep_counties,:);
+timeseries_local = timeseries_local(keep_counties,:);
+offset = offset(keep_counties,:);
 
+% Calculate the indices of some useful counties
 ny_ind = find(fips(:,1) == 36 & fips(:,2) == 61); % NY County
 west_ind = find(county_centers(:,1) == min(county_centers(:,1))); % Westernmost county
 east_ind = find(county_centers(:,1) == max(county_centers(:,1))); % Easternmost county
 la_ind = find(fips(:,1) == 6 & fips(:,2) == 37); % LA County
 
 center = @(x) (x - mean(x))./std(x);
-
-% Plot full time series (synchronous time)
-fullfigure;
-plot((289:2305)/12,activity(289:2305),'LineWidth',2,'Color','black');
-xlim([289 2305]/12);
-xlab = 'Hours from 26-Apr 2014 12:00 UTC';
-ylab = 'Tweets collected';
-tlab = 'Timeseries of Twitter Activity';
-texlab(xlab,ylab,tlab);
-set(gca,'fontsize',16)
 
 %% Fourier Transform of Full Time Series in Synchronous Time
 Fs = (1/5)*(1/60); % Sampling frequency is once per 5 minutes
@@ -69,7 +86,6 @@ ylab = 'Amplitude';
 tlab = ' Avg. Fourier Transform of Daily Activity';
 texlab(xlab,ylab,tlab);
 set(gca,'fontsize',16)
-%% Phase offset and geography
 
 % Compute phase offsets (in hours, from easternmost county) of 3 largest magnitude Fourier components
 ref_county = east_ind;
@@ -80,7 +96,7 @@ end
 
 % We'd naively expect phase offset to be linear in latitude with a slope of
 % 24 hours/360 degrees, so fit the data to that. 
-which_phase = 1; % Look at the 1/day Fourier component
+which_phase = 2; % Look at the 1/day Fourier component
 [xData, yData] = prepareCurveData(county_centers(:,1),phase_relative(:,which_phase));
 ft = fittype( '(24/360)*x + b', 'independent', 'x', 'dependent', 'y' );
 opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
@@ -105,4 +121,27 @@ mapPlot(county_boundaries,phase_relative(:,which_phase) - phase_relative_model);
 tlab = ['Phase Offset Dev. from Linear Model, ',num2str(which_phase),'/day'];
 texlab('','',tlab);
 axis tight off
+%% Compare Fourier, Aitchison and Geographic Distances
+distf = @(x,X) sqrt(sum(bsxfun(@plus,X,-x).*conj(bsxfun(@plus,X,-x)),2));
+s_dist = squareform(pdist(county_spectra,distf));
+[mds_embed,mds_eig] = cmdscale(s_dist);
 
+nBin = 20;
+MI = mInfo(squareform(s_dist),squareform(a_dist),nBin);
+MInull = mInfo(randsample(squareform(s_dist),length(squareform(s_dist)),'false'),squareform(a_dist),nBin);
+MIcond = mInfoC(squareform(s_dist),squareform(a_dist),squareform(g_dist),nBin);
+
+for nb = 2:2:100
+    tic;
+    MIvec(nb/2) = mInfo(squareform(s_dist),squareform(a_dist),nb);
+    MICvec(nb/2) = mInfoC(squareform(s_dist),squareform(a_dist),squareform(g_dist),nb);
+    toc;
+end
+fullfigure;
+hold on
+plot(MIvec,'LineWidth',2,'Color','b');
+plot(MICvec,'LineWidth',2,'Color','r');
+hold off;
+
+[edges,avgs] = distanceComparison(g_dist,a_dist,100,'cum');
+plot(edges,avgs);

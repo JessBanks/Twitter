@@ -2,7 +2,7 @@
 % This computation is long and should only be done once.
 
 clearvars;
-cd('C:\Users\Matthew Banks\Documents\Spring 2014\C4 Twitter Project')
+% cd('C:\Users\Matthew Banks\Documents\Spring 2014\C4 Twitter Project')
 
 centerfile = 'Data\County\county_population_centers_2010.csv';
 [num, ~, ~] = xlsread(centerfile);

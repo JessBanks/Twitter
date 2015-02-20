@@ -50,8 +50,11 @@ end
 % dataG = a_dist <= radius & a_dist > 0;
 
 % OR, Construct k nearest neighbor graph
-nNeighbor = 2;
+nNeighbor = 10;
 dataG = knnGraph(a_dist,nNeighbor,'distance');
+
+fullfigure;
+spy(dataG);
 
 graphconncomp(sparse(dataG)) % Is dataG connected?
 dataG_dist = graphallshortestpaths(sparse(dataG));
@@ -61,12 +64,15 @@ dataG_dist = graphallshortestpaths(sparse(dataG));
 fullfigure;
 scatter(1:nCounty,iso_eig,50,'filled');
 
+fullfigure;
+scatter3(iso_embed(:,1),iso_embed(:,2),iso_embed(:,3),50,log10(county_unique_users),'filled');
+
 % Check for sampling bias by plotting embedding dimensions against #users
-for it = 1:4
-    fullfigure;
-    scatter(county_unique_users,iso_embed(:,it),50,county_fisher,'filled');
-    set(gca,'XScale','log');
-end
+% for it = 1:4
+%     fullfigure;
+%     scatter(county_unique_users,iso_embed(:,it),50,county_fisher,'filled');
+%     set(gca,'XScale','log');
+% end
 
 % Map each dimension
 for it = 1:4
